@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор глубины резкости</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Калькулятор глубины резкости (DOF)</h2>
+        <div id="dofForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Фокусное расстояние (мм)</label>
+                <div class="flex space-x-2">
+                    <select id="focalLengthSelect" class="mt-1 w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            onchange="document.getElementById('focalLength').value = this.value;">
+                        <option value="16">16 мм</option>
+                        <option value="24">24 мм</option>
+                        <option value="35">35 мм</option>
+                        <option value="50" selected>50 мм</option>
+                        <option value="85">85 мм</option>
+                        <option value="100">100 мм</option>
+                        <option value="135">135 мм</option>
+                        <option value="200">200 мм</option>
+                        <option value="">Другое</option>
+                    </select>
+                    <input type="number" id="focalLength" value="50" min="1" required
+                           class="mt-1 w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           oninput="document.getElementById('focalLengthSelect').value = this.value || '';">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Диафрагма (f/)</label>
+                <div class="flex space-x-2">
+                    <select id="apertureSelect" class="mt-1 w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            onchange="document.getElementById('aperture').value = this.value;">
+                        <option value="1.4">f/1.4</option>
+                        <option value="2">f/2</option>
+                        <option value="2.8" selected>f/2.8</option>
+                        <option value="4">f/4</option>
+                        <option value="5.6">f/5.6</option>
+                        <option value="8">f/8</option>
+                        <option value="11">f/11</option>
+                        <option value="16">f/16</option>
+                        <option value="22">f/22</option>
+                        <option value="">Другое</option>
+                    </select>
+                    <input type="number" id="aperture" value="2.8" step="0.1" min="1" required
+                           class="mt-1 w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           oninput="document.getElementById('apertureSelect').value = this.value || '';">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Расстояние до объекта (м)</label>
+                <div class="flex space-x-2">
+                    <input type="number" id="distance" value="2" step="0.1" min="0.1" max="100" required
+                           class="mt-1 w-1/3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                           oninput="document.getElementById('distanceSlider').value = this.value;">
+                    <input type="range" id="distanceSlider" value="2" min="0.1" max="100" step="0.1"
+                           class="mt-1 w-2/3 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                           oninput="document.getElementById('distance').value = this.value;">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Тип сенсора</label>
+                <select id="sensorType" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="0.03">Полнокадровый (35 мм)</option>
+                    <option value="0.02">APS-C (кроп 1.5)</option>
+                    <option value="0.015">Micro Four Thirds</option>
+                </select>
+            </div>
+            <button type="button" onclick="calculateDOF()"
+                    class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition duration-200">
+                Рассчитать
+            </button>
+        </div>
+
+        <h3 class="text-xl font-semibold text-gray-800 mt-6">Результат</h3>
+        <div id="result" class="mt-2 p-4 bg-gray-50 rounded-md text-gray-700"></div>
+
+        <h3 class="text-xl font-semibold text-gray-800 mt-6">Пояснения</h3>
+        <div id="explanations" class="mt-2 text-gray-700">
+            <details class="bg-gray-50 rounded-md p-4">
+                <summary class="cursor-pointer font-medium">Раскрыть пояснения</summary>
+                <p class="mt-2">
+                    <strong>Гиперфокальное расстояние:</strong> Расстояние, при фокусировке на которое всё от половины этого расстояния до бесконечности будет резким. Полезно для пейзажей.<br>
+                    <strong>Ближняя граница резкости:</strong> Самая близкая точка, которая будет в фокусе. Всё ближе — размыто.<br>
+                    <strong>Дальняя граница резкости:</strong> Самая дальняя точка, которая еще резкая. Всё дальше — размыто.<br>
+                    <strong>Глубина резкости:</strong> Зона резкости (расстояние между ближней и дальней границами). Чем меньше, тем сильнее размытие фона (боке).<br>
+                    <strong>Зона резкости:</strong> Диапазон расстояний, в котором объекты будут четкими на фотографии.
+                </p>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        function calculateDOF() {
+            // Получаем значения из формы
+            const f = parseFloat(document.getElementById('focalLength').value); // фокусное расстояние в мм
+            const N = parseFloat(document.getElementById('aperture').value); // диафрагма
+            const s = parseFloat(document.getElementById('distance').value) * 1000; // расстояние в мм
+            const c = parseFloat(document.getElementById('sensorType').value); // круг нерезкости
+
+            // Проверка на валидность входных данных
+            if (isNaN(f) || isNaN(N) || isNaN(s) || f <= 0 || N <= 0 || s <= 0) {
+                document.getElementById('result').innerHTML = '<p class="text-red-600">Пожалуйста, введите корректные значения.</p>';
+                return;
+            }
+
+            // Рассчет гиперфокального расстояния
+            const H = (f * f) / (N * c) + f;
+
+            // Рассчет ближней и дальней границ резкости
+            const Dn = (s * (H - f)) / (H + s - 2 * f);
+            const Df = (s * (H - f)) / (H - s);
+
+            // Глубина резкости
+            let dof;
+            if (Df > 0 && !isNaN(Df)) {
+                dof = Df - Dn;
+            } else {
+                dof = Infinity;
+            }
+
+            // Форматирование результата
+            let result = `
+                <p><strong>Гиперфокальное расстояние:</strong> ${(H / 1000).toFixed(2)} м</p>
+                <p><strong>Ближняя граница резкости:</strong> ${(Dn / 1000).toFixed(2)} м</p>
+                <p><strong>Дальняя граница резкости:</strong> ${Df > 0 && !isNaN(Df) ? (Df / 1000).toFixed(2) + ' м' : 'Бесконечность'}</p>
+                <p><strong>Глубина резкости:</strong> ${dof === Infinity ? 'Бесконечность' : (dof / 1000).toFixed(2) + ' м'}</p>
+                <p><strong>Зона резкости:</strong> Всё между ${(Dn / 1000).toFixed(2)} м и ${Df > 0 && !isNaN(Df) ? (Df / 1000).toFixed(2) + ' м' : 'бесконечностью'} будет резким.</p>
+                <p class="font-mono text-indigo-600">[размыто] --- [<span class="font-bold">резко ${(Dn / 1000).toFixed(2)}–${Df > 0 && !isNaN(Df) ? (Df / 1000).toFixed(2) : '∞'} м</span>] --- [размыто]</p>
+            `;
+
+            document.getElementById('result').innerHTML = result;
+        }
+    </script>
+</body>
+</html>
